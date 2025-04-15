@@ -81,7 +81,7 @@ If a phone number is detected, it's auto-classified as Contacts.
 
 | Home Screen | Add Note |
 |-------------|----------|
-| ![Image](https://github.com/user-attachments/assets/74efe970-6d4c-46bf-8682-fdbc4e93e30b)     | ![Image](https://github.com/user-attachments/assets/3b8306d9-d534-48d1-a201-425d93f8b55b)  |
+| ![Image](https://github.com/user-attachments/assets/74efe970-6d4c-46bf-8682-fdbc4e93e30b)     | ![Image](https://github.com/user-attachments/assets/dd96201b-b1cd-4cfb-8b00-b6ad0704d13b)  |
 
 *Add your screenshots in the screenshots/ folder.*
 
