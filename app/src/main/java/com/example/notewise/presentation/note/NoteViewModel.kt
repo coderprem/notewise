@@ -75,10 +75,10 @@ class NoteViewModel @Inject constructor(
     suspend fun classifyNote(text: String): List<String> {
         resultState.value = NetworkResponse.Loading
 
-        if (isGibberish(text)) {
-            resultState.value = NetworkResponse.Success(listOf("Ideas"))
-            return listOf("Ideas")
-        }
+//        if (isGibberish(text)) {
+//            resultState.value = NetworkResponse.Success(listOf("Ideas"))
+//            return listOf("Ideas")
+//        }
 
         val request = ApiRequest(
             inputs = text,
