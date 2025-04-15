@@ -85,7 +85,7 @@ class NoteViewModel @Inject constructor(
             parameters = Parameters(
                 candidate_labels = listOf(
                     "Work", "Personal", "Tech", "Health", "Finance",
-                    "Shopping", "Ideas", "Travel", "Contacts"
+                    "Shopping", "Ideas", "Travel", "Contact Number"
                 ),
                 multi_label = true
             )
