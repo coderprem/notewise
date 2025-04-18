@@ -56,7 +56,7 @@ fun NoteListScreen(
 ) {
     val categories = listOf(
         "All",
-        "Contact Number",
+        "Contacts",
         "Finance",
         "Health",
         "Ideas",

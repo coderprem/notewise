@@ -88,7 +88,7 @@ class NoteViewModel @Inject constructor(
             parameters = Parameters(
                 candidate_labels = listOf(
                     "Work", "Personal", "Tech", "Health", "Finance",
-                    "Shopping", "Ideas", "Travel", "Contact Number"
+                    "Shopping", "Ideas", "Travel",
                 ),
                 multi_label = true
             )
@@ -99,8 +99,8 @@ class NoteViewModel @Inject constructor(
             val phoneNumberPattern =
                 "\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}".toRegex()
             if (phoneNumberPattern.containsMatchIn(cleanedText)) {
-                resultState.value = NetworkResponse.Success(listOf("Contact Number"))
-                return listOf("Contact Number")
+                resultState.value = NetworkResponse.Success(listOf("Contacts"))
+                return listOf("Contacts")
             }
 
             val response = RetrofitTextInstance.api.classifyText(request)
@@ -115,7 +115,7 @@ class NoteViewModel @Inject constructor(
 
                 // Step 3: Use a lower threshold (e.g. 0.15)
                 val aboveThreshold = labelScorePairs
-                    .filter { it.second > 0.15 }
+                    .filter { it.second > 0.2 }
                     .map { it.first }
 
                 val resultCategories = when {
