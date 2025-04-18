@@ -18,6 +18,7 @@ class BiometricPromptManager(
     fun showBiometricPrompt(
         title: String,
         description: String,
+        onResult: (BioMetricResult) -> Unit
     ) {
         val manager = BiometricManager.from(activity)
         val authenticators = if (Build.VERSION.SDK_INT >= 30) {
@@ -53,18 +54,15 @@ class BiometricPromptManager(
             activity,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    resultChannel.trySend(BioMetricResult.AuthenticationError(errString.toString()))
+                    onResult(BioMetricResult.AuthenticationError(errString.toString()))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    resultChannel.trySend(BioMetricResult.AuthenticationSuccess)
+                    onResult(BioMetricResult.AuthenticationSuccess)
                 }
 
                 override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    resultChannel.trySend(BioMetricResult.AuthenticationFailed)
+                    onResult(BioMetricResult.AuthenticationFailed)
                 }
             }
         )

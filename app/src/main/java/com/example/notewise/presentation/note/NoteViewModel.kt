@@ -75,13 +75,16 @@ class NoteViewModel @Inject constructor(
     suspend fun classifyNote(text: String): List<String> {
         resultState.value = NetworkResponse.Loading
 
+        // Step 1: Clean the input text to normalize it
+        val cleanedText = text.trim().replace("\n", " ").replace(Regex("[ ]+"), " ")
+
 //        if (isGibberish(text)) {
 //            resultState.value = NetworkResponse.Success(listOf("Ideas"))
 //            return listOf("Ideas")
 //        }
 
         val request = ApiRequest(
-            inputs = text,
+            inputs = cleanedText,
             parameters = Parameters(
                 candidate_labels = listOf(
                     "Work", "Personal", "Tech", "Health", "Finance",
@@ -92,27 +95,32 @@ class NoteViewModel @Inject constructor(
         )
 
         return try {
+            // Step 2: Detect contact numbers before classification
             val phoneNumberPattern =
                 "\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}".toRegex()
-            if (phoneNumberPattern.containsMatchIn(text)) {
-                resultState.value = NetworkResponse.Success(listOf("Contacts"))
-                return listOf("Contacts")
+            if (phoneNumberPattern.containsMatchIn(cleanedText)) {
+                resultState.value = NetworkResponse.Success(listOf("Contact Number"))
+                return listOf("Contact Number")
             }
 
             val response = RetrofitTextInstance.api.classifyText(request)
 
             if (response.isSuccessful) {
                 val body = response.body()
-                val labelScorePairs = body?.labels?.zip(body.scores.orEmpty()) ?: emptyList()
+                val labels = body?.labels.orEmpty()
+                val scores = body?.scores.orEmpty()
+                val labelScorePairs = labels.zip(scores)
+
                 Log.d("Classifier", "Raw Scores: $labelScorePairs")
 
-
-                // Filter above threshold (0.3)
-                val aboveThreshold = labelScorePairs.filter { it.second > 0.3 }.map { it.first }
+                // Step 3: Use a lower threshold (e.g. 0.15)
+                val aboveThreshold = labelScorePairs
+                    .filter { it.second > 0.15 }
+                    .map { it.first }
 
                 val resultCategories = when {
                     aboveThreshold.isNotEmpty() -> aboveThreshold
-                    labelScorePairs.isNotEmpty() -> listOf(labelScorePairs.maxByOrNull { it.second }!!.first)
+                    labelScorePairs.isNotEmpty() -> listOf(labelScorePairs.maxBy { it.second }.first)
                     else -> listOf("Ideas")
                 }
 

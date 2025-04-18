@@ -56,7 +56,7 @@ fun NoteListScreen(
 ) {
     val categories = listOf(
         "All",
-        "Contacts",
+        "Contact Number",
         "Finance",
         "Health",
         "Ideas",
@@ -175,7 +175,8 @@ fun NoteListScreen(
                             note = note,
                             onBookmarkClick = { noteViewModel.toggleBookmark(note) },
                             onDeleteClick = { noteViewModel.deleteNote(note) },
-                            onEditClick = { onEditClick(it) }
+                            onEditClick = { onEditClick(it) },
+                            showCategory = selectedCategory == "All" // Only show category when "All" is selected
                         )
                     }
                 }

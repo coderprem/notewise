@@ -41,17 +41,18 @@ fun NoteCard(
     onBookmarkClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onEditClick: (Int) -> Unit = {},
+    showCategory: Boolean = true // New parameter to control category visibility
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     // Toggle card color
     var cardColor =
         if (note.isBookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
 
-    // Conditional color for timestamp
-    val timestampColor = if (note.isBookmarked) {
-        MaterialTheme.colorScheme.onPrimary // Color when bookmarked
+    // Conditional color for timestamp and category
+    val secondaryTextColor = if (note.isBookmarked) {
+        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant // Default color
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Card(
@@ -75,13 +76,21 @@ fun NoteCard(
             )
             Spacer(Modifier.height(8.dp))
 
-            // Display timestamp in a minimalistic style
+            // Only show category if showCategory is true and note has categories
+            if (showCategory && note.categories.isNotEmpty()) {
+                Text(
+                    text = note.categories.joinToString(", "),
+                    style = MaterialTheme.typography.labelSmall.copy(color = secondaryTextColor),
+                    modifier = Modifier.padding(bottom = 1.dp)
+                )
+            }
+
+            // Display timestamp
             Text(
                 text = formatTimestamp(note.timestamp),
-                style = MaterialTheme.typography.bodySmall.copy(color = timestampColor),
+                style = MaterialTheme.typography.bodySmall.copy(color = secondaryTextColor),
                 modifier = Modifier.padding(bottom = 1.dp)
             )
-
 
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = onBookmarkClick) {

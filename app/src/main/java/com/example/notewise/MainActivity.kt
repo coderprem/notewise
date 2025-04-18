@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.notewise.auth.BiometricPromptManager
 import com.example.notewise.auth.BiometricPromptManager.BioMetricResult
+import com.example.notewise.auth.BiometricViewModel
 import com.example.notewise.presentation.navigation.NavGraph
 import com.example.notewise.presentation.note.NoteViewModel
 import com.example.notewise.ui.theme.NoteWiseTheme
@@ -54,7 +55,11 @@ class MainActivity : AppCompatActivity() {
         setContent {
             NoteWiseTheme {
 
-                val biometricResult by promptManager.promptResults.collectAsState(initial = null)
+                val biometricViewModel: BiometricViewModel = hiltViewModel()
+
+                val biometricResult by biometricViewModel.biometricResult.collectAsState()
+
+//                val biometricResult by promptManager.promptResults.collectAsState(initial = null)
 
                 val enrollLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult(),
@@ -69,46 +74,50 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 LaunchedEffect(Unit) {
-                    val biometricManager = BiometricManager.from(this@MainActivity)
-                    val authenticators = if (Build.VERSION.SDK_INT >= 30) {
-                        BiometricManager.Authenticators.BIOMETRIC_WEAK or DEVICE_CREDENTIAL
-                    } else {
-                        BiometricManager.Authenticators.BIOMETRIC_WEAK
-                    }
-
-                    when (biometricManager.canAuthenticate(authenticators)) {
-                        BiometricManager.BIOMETRIC_SUCCESS -> {
-                            promptManager.showBiometricPrompt(
-                                title = "Authenticate",
-                                description = "Please authenticate to access your notes."
-                            )
+                    if (biometricViewModel.biometricResult.value != BiometricPromptManager.BioMetricResult.AuthenticationSuccess) {
+                        val biometricManager = BiometricManager.from(this@MainActivity)
+                        val authenticators = if (Build.VERSION.SDK_INT >= 30) {
+                            BiometricManager.Authenticators.BIOMETRIC_WEAK or DEVICE_CREDENTIAL
+                        } else {
+                            BiometricManager.Authenticators.BIOMETRIC_WEAK
                         }
 
-                        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                            if (Build.VERSION.SDK_INT >= 30) {
-                                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
-                                    putExtra(
-                                        Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                                        BIOMETRIC_STRONG
-                                    )
+                        when (biometricManager.canAuthenticate(authenticators)) {
+                            BiometricManager.BIOMETRIC_SUCCESS -> {
+                                promptManager.showBiometricPrompt(
+                                    title = "Authenticate",
+                                    description = "Please authenticate to access your notes."
+                                ) {
+                                    biometricViewModel.setResult(it)
                                 }
-                                enrollLauncher.launch(enrollIntent)
-                            } else {
+                            }
+
+                            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                                if (Build.VERSION.SDK_INT >= 30) {
+                                    val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
+                                        putExtra(
+                                            Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                                            BIOMETRIC_STRONG
+                                        )
+                                    }
+                                    enrollLauncher.launch(enrollIntent)
+                                } else {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Biometric enrollment not supported on this device.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+
+                            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
+                            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                                 Toast.makeText(
                                     this@MainActivity,
-                                    "Biometric enrollment not supported on this device.",
+                                    "Biometric hardware unavailable or not supported.",
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
-                        }
-
-                        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
-                        BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Biometric hardware unavailable or not supported.",
-                                Toast.LENGTH_LONG
-                            ).show()
                         }
                     }
                 }
@@ -140,7 +149,9 @@ class MainActivity : AppCompatActivity() {
                                     promptManager.showBiometricPrompt(
                                         title = "Authenticate",
                                         description = "Please authenticate to access your notes."
-                                    )
+                                    ) {
+                                        biometricViewModel.setResult(it)
+                                    }
                                 }
                             )
                         }
