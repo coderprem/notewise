@@ -115,7 +115,9 @@ class NoteViewModel @Inject constructor(
 
                 // Step 3: Use a lower threshold (e.g. 0.15)
                 val aboveThreshold = labelScorePairs
-                    .filter { it.second > 0.2 }
+                    .filter { it.second > 0.25 }
+                    .sortedByDescending { it.second }
+                    .take(3)
                     .map { it.first }
 
                 val resultCategories = when {
