@@ -78,11 +78,6 @@ class NoteViewModel @Inject constructor(
         // Step 1: Clean the input text to normalize it
         val cleanedText = text.trim().replace("\n", " ").replace(Regex("[ ]+"), " ")
 
-//        if (isGibberish(text)) {
-//            resultState.value = NetworkResponse.Success(listOf("Ideas"))
-//            return listOf("Ideas")
-//        }
-
         val request = ApiRequest(
             inputs = cleanedText,
             parameters = Parameters(
@@ -113,18 +108,17 @@ class NoteViewModel @Inject constructor(
 
                 Log.d("Classifier", "Raw Scores: $labelScorePairs")
 
-                // Step 3: Use a lower threshold (e.g. 0.15)
-                val aboveThreshold = labelScorePairs
-                    .filter { it.second > 0.25 }
-                    .sortedByDescending { it.second }
-                    .take(3)
-                    .map { it.first }
+                val aboveThreshold = labelScorePairs.filter { it.second > 0.3 }
 
                 val resultCategories = when {
-                    aboveThreshold.isNotEmpty() -> aboveThreshold
-                    labelScorePairs.isNotEmpty() -> listOf(labelScorePairs.maxBy { it.second }.first)
-                    else -> listOf("Ideas")
+                    aboveThreshold.size == 1 -> listOf(aboveThreshold[0].first) // Exactly one above 0.25
+                    aboveThreshold.size > 1 -> aboveThreshold
+                        .sortedByDescending { it.second }
+                        .take(3)
+                        .map { it.first } // Top 3
+                    else -> listOf("Ideas") // None above 0.25
                 }
+
 
                 resultState.value = NetworkResponse.Success(resultCategories)
                 return resultCategories
@@ -137,12 +131,5 @@ class NoteViewModel @Inject constructor(
             resultState.value = NetworkResponse.Error("Exception: ${e.localizedMessage}")
             return listOf("Ideas")
         }
-    }
-
-    // Function to check if the text is gibberish
-    fun isGibberish(text: String): Boolean {
-        // Check for too short text or non-alphabetic characters
-        val gibberishPattern = Regex("[^A-Za-z0-9 ]")  // Non-alphanumeric characters
-        return text.length < 5 || gibberishPattern.containsMatchIn(text)
     }
 }
